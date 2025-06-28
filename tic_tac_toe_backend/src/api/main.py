@@ -22,122 +22,15 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timedelta
 import jwt
-import os
 
-import re
-import sys
-
-
-# Load DB config from env, with validation and fallback for port handling.
-
-
-def redact_password_in_url(url: str) -> str:
-    """
-    Redacts the password in a PostgreSQL URL for safe logging.
-    """
-    pattern = r"(postgresql:\/\/[^:]+:)([^@]+)(@.+)"
-    return re.sub(pattern, r"\1****\3", url)
-
-
-def get_env_or_fail(varname: str):
-    val = os.getenv(varname)
-    if val is None or val == "":
-        raise RuntimeError(f"Environment variable {varname} is required for DB connection.")
-    return val
-
-
-def validate_postgres_url(url):
-    """
-    Validate a PostgreSQL URL in the format:
-    postgresql://<user>:<password>@<host>:<port>/<database>
-    Returns a dict with all parts if valid, raises RuntimeError with user-friendly info if not.
-    """
-    example = "postgresql://username:password@localhost:5432/mydb"
-    msg = (
-        f"Environment variable POSTGRES_URL must be set and follow the format: "
-        f"'postgresql://<user>:<password>@<host>:<port>/<database>'\n"
-        f"Example: {example}"
-    )
-
-    if not url or not url.startswith("postgresql://"):
-        raise RuntimeError(
-            f"POSTGRES_URL is missing or does not start with 'postgresql://'.\n{msg}"
-        )
-    # Pattern with named groups: user, password, host, port, db
-    pattern = (
-        r"^postgresql:\/\/(?P<user>[^:]+):(?P<password>[^@]+)@(?P<host>[^:\/]+):(?P<port>\d+)\/(?P<db>[A-Za-z0-9_\-]+)$"
-    )
-    m = re.match(pattern, url)
-    if not m:
-        # Try detecting non-numeric or missing port
-        port_pattern = r"^postgresql:\/\/([^:]+):([^@]+)@([^:\/]+):([^\/]*)\/(.+)$"
-        m2 = re.match(port_pattern, url)
-        if m2:
-            port = m2.group(4)
-            if not port.strip():
-                raise RuntimeError(
-                    f"POSTGRES_URL is missing a port number after the '@host:'.\n{msg}"
-                )
-            if not port.isdigit():
-                raise RuntimeError(
-                    f"POSTGRES_URL port segment ('{port}') is not numeric.\n{msg}"
-                )
-        redacted = redact_password_in_url(url)
-        malformed_head = "POSTGRES_URL is invalid or malformed. Received: "
-        malformed_body = redacted
-        malformed_tail = "\n" + msg
-        malformed_msg = malformed_head + malformed_body + malformed_tail
-        raise RuntimeError(malformed_msg)
-
-    # Validate for any blank fields
-    parts = m.groupdict()
-    for key in ["user", "password", "host", "port", "db"]:
-        if not parts[key]:
-            raise RuntimeError(
-                f"POSTGRES_URL is missing the value for '{key}'.\n{msg}"
-            )
-    # Port must be numeric (already verified by regex but let's double-check)
-    if not parts["port"].isdigit():
-        raise RuntimeError(
-            f"POSTGRES_URL port segment ('{parts['port']}') is not numeric.\n{msg}"
-        )
-    return parts
-
-
-# Robust parsing and validation of POSTGRES_URL
-POSTGRES_URL = get_env_or_fail('POSTGRES_URL')
-
-try:
-    parts = validate_postgres_url(POSTGRES_URL)
-except Exception as e:
-    print(f"FATAL ERROR: {e}", file=sys.stderr)
-    raise
-
-
-# For debugging: print URL with password redacted
-print(
-    "POSTGRES_URL received (password redacted):",
-    redact_password_in_url(POSTGRES_URL),
-)
-
-
-# Optionally allow override via legacy POSTGRES_* env vars (for legacy docker setups)
-POSTGRES_USER = os.getenv('POSTGRES_USER', parts["user"])
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', parts["password"])
-POSTGRES_DB = os.getenv('POSTGRES_DB', parts["db"])
-POSTGRES_PORT = os.getenv('POSTGRES_PORT', parts["port"])
-POSTGRES_HOST = os.getenv('POSTGRES_HOST', parts["host"])
-
-DATABASE_URL = (
-    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
-    f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
-)
+# --- HARDCODED DATABASE CONNECTION ---
+DATABASE_URL = "postgresql://appuser:dbuser123@localhost:5432/myapp"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_key_for_dev_only")
+SECRET_KEY = "super_secret_key_for_dev_only"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 

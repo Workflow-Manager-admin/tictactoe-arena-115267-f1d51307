@@ -1,3 +1,6 @@
+FATAL ERROR: POSTGRES_URL is invalid or malformed. Received: postgresql://localhost:5000/myapp
+Environment variable POSTGRES_URL must be set and follow the format: 'postgresql://<user>:<password>@<host>:<port>/<database>'
+Example: postgresql://username:password@localhost:5432/mydb
 Traceback (most recent call last):
   File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/bin/uvicorn", line 8, in <module>
     sys.exit(main())
@@ -47,26 +50,11 @@ Traceback (most recent call last):
   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/src/api/main.py", line 54, in <module>
-    engine = create_engine(DATABASE_URL)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<string>", line 2, in create_engine
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
-    return fn(*args, **kwargs)  # type: ignore[no-any-return]
-           ^^^^^^^^^^^^^^^^^^^
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 549, in create_engine
-    u = _url.make_url(url)
-        ^^^^^^^^^^^^^^^^^^
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
-    return _parse_url(name_or_url)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 919, in _parse_url
-    return URL.create(name, **components)  # type: ignore
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 213, in create
-    cls._assert_port(port),
-    ^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 223, in _assert_port
-    return int(port)
-           ^^^^^^^^^
-ValueError: invalid literal for int() with base 10: ''
+  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/src/api/main.py", line 111, in <module>
+    parts = validate_postgres_url(POSTGRES_URL)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/src/api/main.py", line 90, in validate_postgres_url
+    raise RuntimeError(malformed_msg)
+RuntimeError: POSTGRES_URL is invalid or malformed. Received: postgresql://localhost:5000/myapp
+Environment variable POSTGRES_URL must be set and follow the format: 'postgresql://<user>:<password>@<host>:<port>/<database>'
+Example: postgresql://username:password@localhost:5432/mydb
