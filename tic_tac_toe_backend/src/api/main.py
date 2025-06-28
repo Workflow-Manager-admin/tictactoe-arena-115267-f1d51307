@@ -24,16 +24,31 @@ from datetime import datetime, timedelta
 import jwt
 import os
 
-# Load DB config from env
-POSTGRES_URL = os.getenv('POSTGRES_URL')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+
+# Load DB config from env, with validation and fallback for port handling.
+
+
+def get_env_or_fail(varname: str):
+    val = os.getenv(varname)
+    if val is None or val == "":
+        raise RuntimeError(f"Environment variable {varname} is required for DB connection.")
+    return val
+
+
+POSTGRES_URL = get_env_or_fail('POSTGRES_URL')
+POSTGRES_USER = get_env_or_fail('POSTGRES_USER')
+POSTGRES_PASSWORD = get_env_or_fail('POSTGRES_PASSWORD')
+POSTGRES_DB = get_env_or_fail('POSTGRES_DB')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')  # Default to 5432 if not set
+
+try:
+    port_int = int(str(POSTGRES_PORT).strip())
+except Exception as e:
+    raise RuntimeError(f"POSTGRES_PORT provided ('{POSTGRES_PORT}') is not a valid integer: {e}")
 
 DATABASE_URL = (
     f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
-    f"@{POSTGRES_URL}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    f"@{POSTGRES_URL}:{port_int}/{POSTGRES_DB}"
 )
 
 engine = create_engine(DATABASE_URL)
@@ -142,6 +157,8 @@ class Move(Base):
 
 
 # --- CREATE TABLES ON FIRST RUN ---
+
+
 Base.metadata.create_all(bind=engine)
 
 
@@ -590,12 +607,12 @@ def leaderboard(db: Session = Depends(get_db)):
         ).count()
         # Wins is winner and player id matches
         wins = db.query(Game).filter(
-            ((Game.player_x_id == user.id) & (Game.winner == 'X')) |
-            ((Game.player_o_id == user.id) & (Game.winner == 'O'))
+            ((Game.player_x_id == user.id) & (Game.winner == 'X'))
+            | ((Game.player_o_id == user.id) & (Game.winner == 'O'))
         ).count()
         draws = db.query(Game).filter(
-            ((Game.player_x_id == user.id) | (Game.player_o_id == user.id)) &
-            (Game.status == 'draw')
+            ((Game.player_x_id == user.id) | (Game.player_o_id == user.id))
+            & (Game.status == 'draw')
         ).count()
         losses = games_played - wins - draws
         entries.append(LeaderboardEntry(
