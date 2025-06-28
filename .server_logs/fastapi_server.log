@@ -47,7 +47,7 @@ Traceback (most recent call last):
   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/src/api/main.py", line 39, in <module>
+  File "/home/kavia/workspace/code-generation/tictactoe-arena-115267-f1d51307/tic_tac_toe_backend/src/api/main.py", line 54, in <module>
     engine = create_engine(DATABASE_URL)
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "<string>", line 2, in create_engine
